@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+	<title>上海图书馆数字资源手册2023</title>
+	<meta name="description" content="上海图书馆数字资源手册2023">
+	<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">  
+	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style type="text/css">
+	
+
+	table {
+	    border-collapse: collapse;
+	}
+	th, td {
+	    border: solid 1px green;
+	    padding: 5px 10px;
+		font-size: x-large;
+	
+	}
+
+	button{
+  width:200px;
+}
+input{
+	flex-grow: 1;
+}
+	.mt-sm {margin-top: 8px;}
+	body {
+		background: #f4f4f4;
+		padding: 0;
+		margin: 0;
+	}
+	.container {
+		
+		width: 1024px;
+		margin: 0 auto;
+		background: #fff;
+		padding: 20px;
+		min-height: 100vh;
+	}
+
+    </style>
+</head>
+<body>
+	<div class="container">
+		<form class="form-horizontal" role="form">
+		<div class="form-group">
+			<label style="font-size: xx-large" for="firstname" class="col-sm-3 control-label">名称：</label>
+			<div class="col-sm-8">
+				<input style="font-size: xx-large;height: max-content" type="text" class="form-control" id="objkey" 
+					   placeholder="请输入名称关键字">
+			</div>
+		</div>
+		<div class="form-group">
+			<label style="font-size: xx-large" for="lastname" class="col-sm-3 control-label">访问方式：</label>
+			<div class="col-sm-8">
+				<select style="font-size: xx-large;height: max-content;" id="objselect" class="form-control">
+					<option value="">全部</option>
+					<option value="e卡通">e卡通</option>
+					<!-- <option value="OA">OA</option> -->
+					<option value="馆内访问">馆内访问</option>
+					</select>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-offset-3 col-sm-8">
+							<button style="font-size: xx-large" type="button" class="btn btn-default" onclick="onSearch()">查询</button>
+			</div>
+		</div>
+	</form>
+		<p style="font-size: xx-large" id="textname">结果输出：167条</p>
+       <a style="font-size: xx-large;text-decoration:underline" href="https://z.library.sh.cn/dbs:result">实际提供服务和开通e卡通访问的资源，以上海图书馆网站揭示为准</a>
+		<div id="result" contenteditable=""><table class="table" id="store">
+		</table></div>
+
+	</div>
+	<script type="text/javascript" src="./js/jquery.min.js"></script>
+	<script type="text/javascript" src="./js/xlsx.core.min.js"></script>
+	<script type="text/javascript">
+
+	function onSearch(){
+	$('#textname').html('结果输出：');
+	
+	var key=new RegExp(document.getElementById('objkey').value, 'i');   
+	var select=document.getElementById('objselect').value;
+    var storeId = $('#result table')[0];
+    var rowsLength = storeId.rows.length;
+    var searchCol =6;
+	var searchCol2 =4;
+	var jisuanqi=0;
+    for(var i=1;i<rowsLength;i++){
+      var searchText = storeId.rows[i].cells[searchCol].innerHTML;
+	  var searchText2 = storeId.rows[i].cells[searchCol2].innerHTML;
+      if(searchText.match(key) && searchText2.match(select)){
+        storeId.rows[i].style.display='';
+		jisuanqi++;
+      }else{
+        storeId.rows[i].style.display='none';
+      }
+    }
+	$('#textname').append(jisuanqi);
+	$('#textname').append('条');
+}
+
+	function readWorkbookFromRemoteFile(url, callback) {
+		var xhr = new XMLHttpRequest();
+		xhr.open('get', url, true);
+		xhr.responseType = 'arraybuffer';
+		xhr.onload = function(e) {
+			if(xhr.status == 200) {
+				var data = new Uint8Array(xhr.response)
+				var workbook = XLSX.read(data, {type: 'array'});
+				if(callback) callback(workbook);
+			}
+		};
+		xhr.send();
+	}
+
+	function outputWorkbook(workbook) {
+		var sheetNames = workbook.SheetNames; 
+		sheetNames.forEach(name => {
+			var worksheet = workbook.Sheets[name]; 
+			for(var key in worksheet) {
+				console.log(key, key[0] === '!' ? worksheet[key] : worksheet[key].v);
+			}
+		});
+	}
+
+	function readWorkbook(workbook) {
+		var sheetNames = workbook.SheetNames; 
+		var worksheet = workbook.Sheets[sheetNames[0]]; 
+
+		var csv = XLSX.utils.sheet_to_html(worksheet);
+
+		document.getElementById('result').innerHTML = csv;
+		var storeId = $('#result table')[0];
+		var trs=storeId.rows;
+		for(var i=0,len=trs.length;i<len;i++){
+        var cell=trs[i].cells[6].style.display='none';
+    }
+	
+
+	}
+
+	function csv2table(csv)
+	{
+		var html = '<table>';
+		var rows = csv.split('\n');
+		rows.pop(); 
+		rows.forEach(function(row, idx) {
+			var columns = row.split(',');
+			columns.unshift(idx+1);
+			if(idx == 0) { 
+				html += '<tr>';
+				for(var i=0; i<columns.length; i++) {
+					html += '<th>' + (i==0?'':String.fromCharCode(65+i-1)) + '</th>';
+				}
+				html += '</tr>';
+			}
+			html += '<tr>';
+			columns.forEach(function(column) {
+				html += '<td>'+column+'</td>';
+			});
+			html += '</tr>';
+		});
+		html += '</table>';
+		
+
+		return html;
+	}
+
+	function table2csv(table) {
+		var csv = [];
+		$(table).find('tr').each(function() {
+			var temp = [];	
+			$(this).find('td').each(function() {
+				temp.push($(this).html());
+			})
+			temp.shift(); 
+			csv.push(temp.join(','));
+		});
+		csv.shift();
+		return csv.join('\n');
+	}
+
+	function csv2sheet(csv) {
+		var sheet = {}; 
+		csv = csv.split('\n');
+		csv.forEach(function(row, i) {
+			row = row.split(',');
+			if(i == 0) sheet['!ref'] = 'A1:'+String.fromCharCode(65+row.length-1)+(csv.length-1);
+			row.forEach(function(col, j) {
+				sheet[String.fromCharCode(65+j)+(i+1)] = {v: col};
+			});
+		});
+		return sheet;
+	}
+
+	function sheet2blob(sheet, sheetName) {
+		sheetName = sheetName || 'sheet1';
+		var workbook = {
+			SheetNames: [sheetName],
+			Sheets: {}
+		};
+		workbook.Sheets[sheetName] = sheet;
+		var wopts = {
+			bookType: 'xlsx',
+			bookSST: false, 
+			type: 'binary'
+		};
+		var wbout = XLSX.write(workbook, wopts);
+		var blob = new Blob([s2ab(wbout)], {type:"application/octet-stream"});
+		function s2ab(s) {
+			var buf = new ArrayBuffer(s.length);
+			var view = new Uint8Array(buf);
+			for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+			return buf;
+		}
+		return blob;
+	}
+
+	function openDownloadDialog(url, saveName)
+	{
+		if(typeof url == 'object' && url instanceof Blob)
+		{
+			url = URL.createObjectURL(url); 
+		}
+		var aLink = document.createElement('a');
+		aLink.href = url;
+		aLink.download = saveName || ''; 
+		var event;
+		if(window.MouseEvent) event = new MouseEvent('click');
+		else
+		{
+			event = document.createEvent('MouseEvents');
+			event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+		}
+		aLink.dispatchEvent(event);
+	}
+
+	$(document).ready(function(){  
+		loadRemoteFile('./ceshi.xlsx');	
+ })  
+	
+
+	
+	function loadRemoteFile(url) {
+		readWorkbookFromRemoteFile(url, function(workbook) {
+			readWorkbook(workbook);
+		});
+	}
+
+	function exportExcel() {
+		var csv = table2csv($('#result table')[0]);
+		var sheet = csv2sheet(csv);
+		var blob = sheet2blob(sheet);
+		openDownloadDialog(blob, '导出.xlsx');
+	}
+
+	</script>
+
+</body></html>
