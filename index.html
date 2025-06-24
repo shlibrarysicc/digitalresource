@@ -18,10 +18,22 @@
 		td {
 			border: solid 1px green;
 			padding: 5px 10px;
-			font-size: 18px;
+			font-size: 18px !important;
 			font-family: "Microsoft YaHei", "微软雅黑", Arial, "Times New Roman", sans-serif;
-			font-weight: normal;
+			font-weight: normal !important;
 
+		}
+
+		/* 确保Bootstrap table类不会影响字体大小 */
+		.table>thead>tr>th,
+		.table>tbody>tr>th,
+		.table>tfoot>tr>th,
+		.table>thead>tr>td,
+		.table>tbody>tr>td,
+		.table>tfoot>tr>td {
+			font-size: 18px !important;
+			font-family: "Microsoft YaHei", "微软雅黑", Arial, "Times New Roman", sans-serif !important;
+			font-weight: normal !important;
 		}
 
 		button {
