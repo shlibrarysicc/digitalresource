@@ -163,8 +163,18 @@
 			document.getElementById('result').innerHTML = csv;
 			var storeId = $('#result table')[0];
 			var trs = storeId.rows;
+
+			// 清除所有表格单元格的内联样式，确保字体大小一致
+			$(storeId).find('th, td').each(function () {
+				// 移除所有内联样式
+				$(this).removeAttr('style');
+			});
+
+			// 隐藏第7列（在清除样式后重新设置）
 			for (var i = 0, len = trs.length; i < len; i++) {
-				var cell = trs[i].cells[6].style.display = 'none';
+				if (trs[i].cells[6]) {
+					trs[i].cells[6].style.display = 'none';
+				}
 			}
 
 
